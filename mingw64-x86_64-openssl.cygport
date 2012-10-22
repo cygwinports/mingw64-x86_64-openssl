@@ -1,0 +1,33 @@
+NAME="mingw64-x86_64-openssl"
+VERSION=1.0.1c
+RELEASE=1
+CATEGORY="Devel"
+SUMMARY="OpenSSL encryption library for Win64 toolchain"
+DESCRIPTION="This package does NOT contain cygwin binaries.  Instead, it
+contains msvcrt-linked binaries (aka 'mingw').  It is for use with the
+mingw64-x86_64-gcc cross compiler, and installs into the
+/usr/x86_64-w64-mingw32/sys-root/mingw/{lib,include} directories."
+HOMEPAGE="http://www.openssl.org/"
+SRC_URI="http://www.openssl.org/source/openssl-${VERSION}.tar.gz"
+SRC_DIR="openssl-${VERSION}"
+PATCH_URI="1.0.1-libname.patch"
+CROSS_HOST="x86_64-w64-mingw32"
+inherit cross
+
+src_compile() {
+	lndirs
+	cd ${B}
+	CC=gcc \
+	./Configure \
+		--prefix=${CROSS_PREFIX} \
+		--cross-compile-prefix=${CROSS_HOST}- \
+		zlib no-idea no-mdc2 no-rc5 no-capieng no-hw shared mingw64
+	cygmake all build-shared -j1
+}
+
+src_install() {
+	cd ${B}
+	cygmake install_sw INSTALL_PREFIX=${D} -j1
+	rm -f ${D}${CROSS_BINDIR}/{c_rehash,*.exe}
+	rm -fr ${D}${CROSS_PREFIX}/ssl/misc
+}
